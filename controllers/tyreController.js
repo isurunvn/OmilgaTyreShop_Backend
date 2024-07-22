@@ -94,6 +94,35 @@ try {
 }
 };
 
+exports.getFilteredByRegular = async (req, res) => {
+  try {
+    // Extract search criteria from request query parameters
+    const { tyreBrand, vehicleCategory } = req.query;
+
+    // tyreBrand = tyreBrand.toUpperCase().replace(/\s+/g, '');
+    // vehicleCategory = vehicleCategory.toLowerCase().replace(/\s+/g, '');
+
+
+    // Construct the filter object based on provided search criteria
+    const filter = {};
+
+    
+    if (tyreBrand) filter.tyreBrand = { $regex: `^${tyreBrand}`, $options: 'i' };
+    if (vehicleCategory) filter.vehicleCategory = { $regex: vehicleCategory, $options: 'i' };
+
+
+
+    console.log('Constructed filter:', filter);
+
+    const tyres = await Tyre.find(filter);
+
+    res.status(200).json({ tyres });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch filtered tyres' });
+  }
+};
+
+
 exports.getBySize = async (req, res) => {
 try {
   const { tyreWidth, profile, rimSize } = req.query;

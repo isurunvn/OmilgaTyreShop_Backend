@@ -8,6 +8,7 @@ const upload = require('..//middlewares/upload');
 router.post('/addTyre',auth, upload, tyreController.addTyre);
 router.get('/allTyres', tyreController.getAllTyres);
 router.get('/filterTyres', tyreController.getFilteredTyres);
+router.get('/filterByRegular', tyreController.getFilteredByRegular);
 router.get('/filterBySize', tyreController.getBySize);
 router.delete('/removeTyre',auth, tyreController.removeTyre);
 
