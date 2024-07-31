@@ -81,8 +81,8 @@ try {
   if (profile) filter.profile = profile;
   if (rimSize) filter.rimSize = rimSize; 
   if (tube) filter.tube = tube; 
-  if (tyreBrand) filter.tyreBrand = tyreBrand;
-  if (vehicleCategory) filter.vehicleCategory = vehicleCategory;
+  if (tyreBrand) filter.tyreBrand = { $regex: `^${tyreBrand}`, $options: 'i' };
+  if (vehicleCategory) filter.vehicleCategory = { $regex: vehicleCategory, $options: 'i' };
 
   console.log('Constructed filter:', filter);
 
