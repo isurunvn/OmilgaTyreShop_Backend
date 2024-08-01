@@ -2,23 +2,24 @@ const fs = require('fs');
 const path = require('path');
 const Tyre = require('../models/tyre');
 const Counter = require('../models/counter');
-const multer = require('multer');
 
 exports.addTyre = async (req, res) => {
   try {
     let { tyreWidth, profile, rimSize, tube, tyreBrand, vehicleCategory, price, oldPrice } = req.body;
 
-    // Check if image file was uploaded
-    if (!req.file) {
-      return res.status(400).json({ message: 'Image file is required' });
+    // Check if all image files were uploaded
+    if (!req.files || !req.files.mainImage || !req.files.secondImage || !req.files.thirdImage) {
+      return res.status(400).json({ message: 'All three image files are required' });
     }
 
-    // Convert tyreBrand and vehicleCategory to lowercase and remove spaces
+    // Convert tyreBrand and vehicleCategory to uppercase and lowercase respectively, and remove spaces
     tyreBrand = tyreBrand.toUpperCase().replace(/\s+/g, '');
     vehicleCategory = vehicleCategory.toLowerCase().replace(/\s+/g, '');
 
-    // Read image file from filesystem
-    const image = fs.readFileSync(req.file.path);
+    // Read image files from filesystem
+    const mainImage = fs.readFileSync(req.files.mainImage[0].path);
+    const secondImage = fs.readFileSync(req.files.secondImage[0].path);
+    const thirdImage = fs.readFileSync(req.files.thirdImage[0].path);
 
     // Get the next sequence value for tyreId
     const counter = await Counter.findByIdAndUpdate(
@@ -38,12 +39,24 @@ exports.addTyre = async (req, res) => {
       tube: tube === 'true',
       tyreBrand,
       vehicleCategory,
+      makes,
+      description,
       price,
       oldPrice,
-      image: {
-        data: image,
-        contentType: req.file.mimetype
-      }
+      images: [
+        {
+          data: mainImage,
+          contentType: req.files.mainImage[0].mimetype
+        },
+        {
+          data: secondImage,
+          contentType: req.files.secondImage[0].mimetype
+        },
+        {
+          data: thirdImage,
+          contentType: req.files.thirdImage[0].mimetype
+        }
+      ]
     });
 
     console.log(newTyre);
@@ -51,8 +64,10 @@ exports.addTyre = async (req, res) => {
     // Save the tyre to the database
     await newTyre.save();
 
-    // Delete temporary image file after saving to database
-    // fs.unlinkSync(req.file.path);
+    // Delete temporary image files after saving to database
+    fs.unlinkSync(req.files.mainImage[0].path);
+    fs.unlinkSync(req.files.secondImage[0].path);
+    fs.unlinkSync(req.files.thirdImage[0].path);
 
     res.status(201).json({ message: 'Tyre added successfully' });
   } catch (err) {

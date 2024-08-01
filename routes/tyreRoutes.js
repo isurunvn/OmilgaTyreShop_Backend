@@ -5,7 +5,13 @@ const tyreController = require('../controllers/tyreController');
 const auth = require('../middlewares/jwtAuth')
 const upload = require('..//middlewares/upload');
 
-router.post('/addTyre',auth, upload, tyreController.addTyre);
+router.post('/addTyre', 
+    // auth,
+     upload.fields([
+    { name: 'mainImage', maxCount: 1 },
+    { name: 'secondImage', maxCount: 1 },
+    { name: 'thirdImage', maxCount: 1 }
+  ]), tyreController.addTyre);
 router.get('/allTyres', tyreController.getAllTyres);
 router.get('/filterTyres', tyreController.getFilteredTyres);
 router.get('/filterByRegular', tyreController.getFilteredByRegular);

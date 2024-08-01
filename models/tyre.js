@@ -9,9 +9,11 @@ const tyreSchema = new mongoose.Schema({
   tube: { type: Boolean, required: true },
   tyreBrand: { type: String, required: true },
   vehicleCategory: { type: String, required: true },
+  makes: { type: [String] },
+  description: { type: String },
   price: { type: Number, required: true },
   oldPrice: { type: Number },
-  image: {
+  images: {
     data: Buffer,
     contentType: String,
   }
