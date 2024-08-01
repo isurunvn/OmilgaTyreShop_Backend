@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const tyreController = require('../controllers/tyreController');
 const auth = require('../middlewares/jwtAuth')
-const upload = require('..//middlewares/upload');
+const upload = require('../middlewares/upload');
 
 router.post('/addTyre', 
     // auth,

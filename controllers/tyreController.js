@@ -5,7 +5,7 @@ const Counter = require('../models/counter');
 
 exports.addTyre = async (req, res) => {
   try {
-    let { tyreWidth, profile, rimSize, tube, tyreBrand, vehicleCategory, price, oldPrice } = req.body;
+    let { tyreWidth, profile, rimSize, tube, tyreBrand, vehicleCategory, makes, description, price, oldPrice } = req.body;
 
     // Check if all image files were uploaded
     if (!req.files || !req.files.mainImage || !req.files.secondImage || !req.files.thirdImage) {
@@ -29,6 +29,8 @@ exports.addTyre = async (req, res) => {
     );
 
     const tyreId = counter.seq;
+
+    console.log(tyreBrand);
 
     // Create tyre object with image data
     const newTyre = new Tyre({
