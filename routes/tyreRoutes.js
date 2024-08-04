@@ -14,7 +14,7 @@ router.post('/addTyre',
   ]), tyreController.addTyre);
 router.get('/allTyres', tyreController.getAllTyres);
 router.get('/filterTyres', tyreController.getFilteredTyres);
-router.get('/filterByRegular', tyreController.getFilteredByRegular);
+router.get('/filterById/:id', tyreController.getFilteredById);
 router.get('/filterBySize', tyreController.getBySize);
 router.delete('/removeTyre',
   // auth, 

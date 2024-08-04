@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const Tyre = require('../models/tyre');
 const Counter = require('../models/counter');
+const mongoose = require('mongoose');
 
 exports.addTyre = async (req, res) => {
   try {
@@ -127,31 +128,22 @@ try {
 }
 };
 
-exports.getFilteredByRegular = async (req, res) => {
+exports.getFilteredById = async (req, res) => {
   try {
-    // Extract search criteria from request query parameters
-    const { tyreBrand, vehicleCategory } = req.query;
+    const { id } = req.params;
 
-    // tyreBrand = tyreBrand.toUpperCase().replace(/\s+/g, '');
-    // vehicleCategory = vehicleCategory.toLowerCase().replace(/\s+/g, '');
+    // Validate the ID (MongoDB ObjectId format)
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid ID format' });
+    }
 
+    console.log('Recieved id:', id);
 
-    // Construct the filter object based on provided search criteria
-    const filter = {};
-
-    
-    if (tyreBrand) filter.tyreBrand = { $regex: `^${tyreBrand}`, $options: 'i' };
-    if (vehicleCategory) filter.vehicleCategory = { $regex: vehicleCategory, $options: 'i' };
-
-
-
-    console.log('Constructed filter:', filter);
-
-    const tyres = await Tyre.find(filter);
+    const tyres = await Tyre.findById(id);
 
     res.status(200).json({ tyres });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch filtered tyres' });
+    res.status(500).json({ message: 'Failed to fetch filtered tyres', error:err.message });
   }
 };
 
