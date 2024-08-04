@@ -13,10 +13,12 @@ const tyreSchema = new mongoose.Schema({
   description: { type: String },
   price: { type: Number, required: true },
   oldPrice: { type: Number },
-  images: {
+  images: [
+    {
     data: Buffer,
     contentType: String,
-  }
+    }
+  ]
 });
 
 module.exports = mongoose.model('Tyre', tyreSchema);

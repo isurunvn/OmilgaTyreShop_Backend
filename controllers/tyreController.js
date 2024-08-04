@@ -7,6 +7,8 @@ exports.addTyre = async (req, res) => {
   try {
     let { tyreWidth, profile, rimSize, tube, tyreBrand, vehicleCategory, makes, description, price, oldPrice } = req.body;
 
+    console.log('Received query parameters:', { tyreWidth, profile, rimSize, tube, tyreBrand, vehicleCategory, makes, description, price, oldPrice });
+
     // Check if all image files were uploaded
     if (!req.files || !req.files.mainImage || !req.files.secondImage || !req.files.thirdImage) {
       return res.status(400).json({ message: 'All three image files are required' });
@@ -20,6 +22,10 @@ exports.addTyre = async (req, res) => {
     const mainImage = fs.readFileSync(req.files.mainImage[0].path);
     const secondImage = fs.readFileSync(req.files.secondImage[0].path);
     const thirdImage = fs.readFileSync(req.files.thirdImage[0].path);
+
+    console.log("Start of binary image");
+    console.log(mainImage);
+    console.log("End of binary image");
 
     // Get the next sequence value for tyreId
     const counter = await Counter.findByIdAndUpdate(
@@ -162,16 +168,21 @@ try {
 
 exports.removeTyre = async (req, res) => {
   try {
-    const { tyreBrand, vehicleCategory } = req.query;
+    let { tyreBrand, vehicleCategory } = req.body;
 
     // Log received query parameters
     console.log('Received query parameters:', { tyreBrand, vehicleCategory });
+
+    // Ensure that tyreBrand and vehicleCategory are provided
+    if (!tyreBrand || !vehicleCategory) {
+      return res.status(400).json({ message: 'Missing tyreBrand or vehicleCategory' });
+    }
 
     const filter = {};
     if (tyreBrand) filter.tyreBrand = tyreBrand.toUpperCase().replace(/\s+/g, ''); // Ensure consistency with stored data
     if (vehicleCategory) filter.vehicleCategory = vehicleCategory.toLowerCase().replace(/\s+/g, ''); // Ensure consistency with stored data
 
-    // Log constructed filter
+    // // Log constructed filter
     console.log('Constructed filter:', filter);
 
     const removedTyre = await Tyre.deleteMany(filter);
@@ -181,8 +192,8 @@ exports.removeTyre = async (req, res) => {
       return res.status(404).json({ message: 'Tyre not found' });
     }
 
-    // Log success message
-    console.log('Tyre removed successfully:', removedTyre);
+    // // Log success message
+    // console.log('Tyre removed successfully:', removedTyre);
 
     res.status(200).json({ message: 'Tyre removed successfully' });
   } catch (err) {
