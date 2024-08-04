@@ -109,7 +109,17 @@ try {
 
   console.log('Constructed filter:', filter);
 
-  const tyres = await Tyre.find(filter);
+  const tyres = await Tyre.find(filter).select({
+    tyreWidth: 1,
+    profile: 1,
+    rimSize: 1,
+    tube: 1,
+    tyreBrand: 1,
+    vehicleCategory: 1,
+    oldPrice: 1,
+    price: 1,
+    images: { $arrayElemAt: ['$images', 0] } // Select the 0th index image
+  });
 
   res.status(200).json({ tyres });
 } catch (err) {
