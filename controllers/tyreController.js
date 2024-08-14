@@ -94,39 +94,114 @@ exports.getAllTyres = async (req, res) => {
   }
 };
 
+// exports.getFilteredTyres = async (req, res) => {
+// try {
+//   // Extract search criteria from request query parameters
+//   const { tyreWidth, profile, rimSize, tube, tyreBrand, vehicleCategory } = req.query;
+
+//   // Construct the filter object based on provided search criteria
+//   const filter = {};
+//   if (tyreWidth) filter.tyreWidth = tyreWidth;
+//   if (profile) filter.profile = profile;
+//   if (rimSize) filter.rimSize = rimSize; 
+//   if (tube) filter.tube = tube; 
+//   if (tyreBrand) filter.tyreBrand = { $regex: `^${tyreBrand}`, $options: 'i' };
+//   if (vehicleCategory) filter.vehicleCategory = { $regex: vehicleCategory, $options: 'i' };
+
+//   console.log('Constructed filter:', filter);
+
+//   const tyres = await Tyre.find(filter).select({
+//     tyreWidth: 1,
+//     profile: 1,
+//     rimSize: 1,
+//     tube: 1,
+//     tyreBrand: 1,
+//     vehicleCategory: 1,
+//     oldPrice: 1,
+//     price: 1,
+//     images: { $arrayElemAt: ['$images', 0] } // Select the 0th index image
+//   });
+
+//   res.status(200).json({ tyres });
+// } catch (err) {
+//   res.status(500).json({ message: 'Failed to fetch filtered tyres' });
+// }
+// };
+
+
+
+
 exports.getFilteredTyres = async (req, res) => {
-try {
-  // Extract search criteria from request query parameters
-  const { tyreWidth, profile, rimSize, tube, tyreBrand, vehicleCategory } = req.query;
+  try {
+    // Extract search criteria and pagination parameters from request query
+    const { tyreWidth, profile, rimSize, tube, tyreBrand, vehicleCategory, limit, page, lastId } = req.query;
+    const pageSize = parseInt(limit) || 2;
+    const currentPage = parseInt(page) || 1;
+    const lastObjectId = lastId ? new mongoose.Types.ObjectId(lastId) : null;
 
-  // Construct the filter object based on provided search criteria
-  const filter = {};
-  if (tyreWidth) filter.tyreWidth = tyreWidth;
-  if (profile) filter.profile = profile;
-  if (rimSize) filter.rimSize = rimSize; 
-  if (tube) filter.tube = tube; 
-  if (tyreBrand) filter.tyreBrand = { $regex: `^${tyreBrand}`, $options: 'i' };
-  if (vehicleCategory) filter.vehicleCategory = { $regex: vehicleCategory, $options: 'i' };
+    // Construct the filter object based on provided search criteria
+    const filter = {};
+    if (tyreWidth) filter.tyreWidth = tyreWidth;
+    if (profile) filter.profile = profile;
+    if (rimSize) filter.rimSize = rimSize; 
+    if (tube) filter.tube = tube; 
+    if (tyreBrand) filter.tyreBrand = { $regex: `^${tyreBrand}`, $options: 'i' };
+    if (vehicleCategory) filter.vehicleCategory = { $regex: vehicleCategory, $options: 'i' };
 
-  console.log('Constructed filter:', filter);
+    if (lastObjectId) {
+      filter._id = { $gt: lastObjectId }; // Cursor-based pagination
+    }
 
-  const tyres = await Tyre.find(filter).select({
-    tyreWidth: 1,
-    profile: 1,
-    rimSize: 1,
-    tube: 1,
-    tyreBrand: 1,
-    vehicleCategory: 1,
-    oldPrice: 1,
-    price: 1,
-    images: { $arrayElemAt: ['$images', 0] } // Select the 0th index image
-  });
+    console.log('Constructed filter:', filter);
 
-  res.status(200).json({ tyres });
-} catch (err) {
-  res.status(500).json({ message: 'Failed to fetch filtered tyres' });
-}
+    // Find tyres with pagination and sorting
+    const tyres = await Tyre.find(filter)
+      .sort({ _id: 1 }) // Ensure consistent ordering for pagination
+      .limit(pageSize)
+      .select({
+        tyreWidth: 1,
+        profile: 1,
+        rimSize: 1,
+        tube: 1,
+        tyreBrand: 1,
+        vehicleCategory: 1,
+        oldPrice: 1,
+        price: 1,
+        images: { $arrayElemAt: ['$images', 0] } // Select the first image
+      });
+
+    // Count how many tyres are in the returned array
+    const tyreCount = tyres.length;
+
+    // Get the total count of documents that match the filter
+    const totalTyres = await Tyre.countDocuments(filter);
+
+    // Calculate total pages based on the limit
+    const totalPages = Math.ceil(totalTyres / pageSize);
+
+    // Determine the last ID for the next pagination call
+    const lastProductId = tyres.length > 0 ? tyres[tyres.length - 1]._id : null;
+
+    // Return the tyres along with pagination information
+    res.status(200).json({
+      tyres,
+      totalTyres,
+      returnedTyreCount: tyreCount,
+      totalPages,
+      currentPage,
+      pageSize,
+      lastId: lastProductId
+    });
+  } catch (err) {
+    console.error('Failed to fetch filtered tyres:', err);
+    res.status(500).json({ message: 'Failed to fetch filtered tyres' });
+  }
 };
+
+
+
+
+
 
 exports.getFilteredById = async (req, res) => {
   try {
@@ -275,6 +350,9 @@ exports.getPageAndLimit = async (req, res) => {
       .sort({ _id: 1 }) // Sort by _id to ensure consistent ordering
       .limit(limit)
       .select('tyreid tyrename image sizeinfo oldprice newprice'); // Select only necessary fields
+
+      console.log('Fetched Products:', products);
+
 
     // Get the total count of documents (only once, not paginated)
     const totalProducts = await Tyre.countDocuments();
