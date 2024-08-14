@@ -25,4 +25,10 @@ router.get('/tyreWidths', tyreController.getTyreWidths);
 router.get('/tyreProfiles', tyreController.getTyreProfiles);
 router.get('/rimsizes', tyreController.getRimSizes);
 
+//for pagination purposes
+// router.get('/tyreCount', tyreController.getTyreCount);
+// router.get('/pageLimit', tyreController.getPageWithLimit);
+router.get('/pageAndLimit', tyreController.getPageAndLimit);
+
+
 module.exports = router;
