@@ -231,3 +231,68 @@ exports.getRimSizes = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch rim sizes' });
   }
 };
+
+
+//for pagination purposes
+
+//get total product count
+// exports.getTyreCount = async (req, res) => {
+//   try {
+//     const count = await Tyre.countDocuments();
+//     res.json({ count });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
+// //get products for a specific page with limit
+// exports.getPageWithLimit = async (req, res) => {
+//   const page = parseInt(req.query.page) || 1;
+//   const limit = parseInt(req.query.limit) || 15;
+//   const skip = (page - 1) * limit;
+
+//   try {
+//     const products = await Tyre.find().skip(skip).limit(limit);
+//     res.json(products);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
+exports.getPageAndLimit = async (req, res) => {
+  const limit = parseInt(req.query.limit) || 10;
+  const lastId = req.query.lastId ? new mongoose.Types.ObjectId(req.query.lastId) : null; // Use the last _id for cursor-based pagination
+
+  try {
+    // Cursor-based pagination: Find documents greater than the lastId
+    let query = {};
+    if (lastId) {
+      query = { _id: { $gt: lastId } };
+    }
+
+    // Retrieve only the necessary fields
+    const products = await Tyre.find(query)
+      .sort({ _id: 1 }) // Sort by _id to ensure consistent ordering
+      .limit(limit)
+      .select('tyreid tyrename image sizeinfo oldprice newprice'); // Select only necessary fields
+
+    // Get the total count of documents (only once, not paginated)
+    const totalProducts = await Tyre.countDocuments();
+
+    // Calculate total pages (based on limit)
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    // Return the products, along with pagination info
+    res.json({
+      products,
+      totalProducts,
+      totalPages,
+      currentPage: req.query.page || 1,
+      pageSize: limit,
+      lastId: products.length > 0 ? products[products.length - 1]._id : null,
+    });
+  } catch (error) {
+    console.error('Error fetching products:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
