@@ -18,6 +18,6 @@ app.use('/api/user', userRoutes);
 app.use('/api/tyre', tyreRoutes);
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
