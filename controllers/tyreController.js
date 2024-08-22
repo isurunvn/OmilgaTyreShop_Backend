@@ -1,5 +1,5 @@
 const fs = require('fs');
-const path = require('path');
+// const path = require('path');
 const Tyre = require('../models/tyre');
 const Counter = require('../models/counter');
 const mongoose = require('mongoose');
@@ -143,16 +143,20 @@ exports.getFilteredTyres = async (req, res) => {
     const filter = {};
     if (tyreWidth) filter.tyreWidth = tyreWidth;
     if (profile) filter.profile = profile;
-    if (rimSize) filter.rimSize = rimSize; 
-    if (tube) filter.tube = tube; 
+    if (rimSize) filter.rimSize = rimSize;
+    if (tube) filter.tube = tube;
     if (tyreBrand) filter.tyreBrand = { $regex: `^${tyreBrand}`, $options: 'i' };
     if (vehicleCategory) filter.vehicleCategory = { $regex: vehicleCategory, $options: 'i' };
 
-    if (lastObjectId) {
-      filter._id = { $gt: lastObjectId }; // Cursor-based pagination
-    }
-
     console.log('Constructed filter:', filter);
+
+    // Get the total count of documents that match the filter (excluding pagination condition)
+    const totalTyres = await Tyre.countDocuments(filter);
+
+    // Add the cursor-based pagination condition for the actual query
+    if (lastObjectId) {
+      filter._id = { $gt: lastObjectId };
+    }
 
     // Find tyres with pagination and sorting
     const tyres = await Tyre.find(filter)
@@ -173,9 +177,6 @@ exports.getFilteredTyres = async (req, res) => {
     // Count how many tyres are in the returned array
     const tyreCount = tyres.length;
 
-    // Get the total count of documents that match the filter
-    const totalTyres = await Tyre.countDocuments(filter);
-
     // Calculate total pages based on the limit
     const totalPages = Math.ceil(totalTyres / pageSize);
 
@@ -185,12 +186,12 @@ exports.getFilteredTyres = async (req, res) => {
     // Return the tyres along with pagination information
     res.status(200).json({
       tyres,
-      totalTyres,
-      returnedTyreCount: tyreCount,
-      totalPages,
-      currentPage,
-      pageSize,
-      lastId: lastProductId
+      totalTyres, // Total count of products matching the filter criteria
+      returnedTyreCount: tyreCount, // Count of tyres in the current response
+      totalPages, // Total number of pages
+      currentPage, // Current page
+      pageSize, // Number of products per page
+      lastId: lastProductId // Last ID for cursor-based pagination
     });
   } catch (err) {
     console.error('Failed to fetch filtered tyres:', err);
@@ -335,7 +336,7 @@ exports.getRimSizes = async (req, res) => {
 // };
 
 exports.getPageAndLimit = async (req, res) => {
-  const limit = parseInt(req.query.limit) || 10;
+  const limit = parseInt(req.query.limit) || 4;
   const lastId = req.query.lastId ? new mongoose.Types.ObjectId(req.query.lastId) : null; // Use the last _id for cursor-based pagination
 
   try {
