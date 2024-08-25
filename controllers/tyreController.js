@@ -235,38 +235,65 @@ try {
 };
 
 
-exports.removeTyre = async (req, res) => {
+exports.updateTyre = async (req, res) => {
   try {
-    let { tyreBrand, vehicleCategory } = req.body;
+    const { tyreId } = req.params; // Get the tyreId from the URL parameters
+    const updateData = req.body; // Get the fields to update from the request body
 
-    // Log received query parameters
-    console.log('Received query parameters:', { tyreBrand, vehicleCategory });
+    // Log the update request
+    console.log('Received update request for tyreId:', tyreId);
+    console.log('Update data:', updateData);
 
-    // Ensure that tyreBrand and vehicleCategory are provided
-    if (!tyreBrand || !vehicleCategory) {
-      return res.status(400).json({ message: 'Missing tyreBrand or vehicleCategory' });
+    // Ensure that the tyreId is provided
+    if (!tyreId) {
+      return res.status(400).json({ message: 'Missing tyreId' });
     }
 
-    const filter = {};
-    if (tyreBrand) filter.tyreBrand = tyreBrand.toUpperCase().replace(/\s+/g, ''); // Ensure consistency with stored data
-    if (vehicleCategory) filter.vehicleCategory = vehicleCategory.toLowerCase().replace(/\s+/g, ''); // Ensure consistency with stored data
+    // Find the tyre by tyreId and update it with the new data
+    const updatedTyre = await Tyre.findOneAndUpdate(
+      { tyreId }, // The filter to find the tyre
+      updateData, // The data to update
+      { new: true, runValidators: true } // Options: return the updated document and run validators
+    );
 
-    // // Log constructed filter
+    // Check if the tyre was found and updated
+    if (!updatedTyre) {
+      console.log('Tyre not found');
+      return res.status(404).json({ message: 'Tyre not found' });
+    }
+
+    // Log the success message and return the updated tyre
+    console.log('Tyre updated successfully:', updatedTyre);
+    res.status(200).json({ message: 'Tyre updated successfully', tyre: updatedTyre });
+  } catch (err) {
+    // Log any errors that occur during the update
+    console.error('Error occurred while updating tyre:', err);
+    res.status(500).json({ message: 'Failed to update tyre' });
+  }
+};
+
+
+exports.removeTyre = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    console.log('Received id:', id);
+
+    const filter = { _id: id };
+
     console.log('Constructed filter:', filter);
 
-    const removedTyre = await Tyre.deleteMany(filter);
+    const removedTyre = await Tyre.findByIdAndDelete(id);
 
     if (!removedTyre) {
       console.log('Tyre not found');
       return res.status(404).json({ message: 'Tyre not found' });
     }
 
-    // // Log success message
-    // console.log('Tyre removed successfully:', removedTyre);
+    console.log('Tyre removed successfully:', removedTyre);
 
     res.status(200).json({ message: 'Tyre removed successfully' });
   } catch (err) {
-    // Log the error
     console.error('Error occurred while removing tyre:', err);
     res.status(500).json({ message: 'Failed to remove tyre' });
   }

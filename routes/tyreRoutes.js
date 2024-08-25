@@ -16,7 +16,8 @@ router.get('/allTyres', tyreController.getAllTyres);
 router.get('/filterTyres', tyreController.getFilteredTyres);
 router.get('/filterById/:id', tyreController.getFilteredById);
 router.get('/filterBySize', tyreController.getBySize);
-router.delete('/removeTyre',
+router.put('/updateTyre', tyreController.updateTyre);
+router.delete('/removeTyre/:id',
   // auth, 
   tyreController.removeTyre);
 
