@@ -70,7 +70,6 @@ exports.addTyre = async (req, res) => {
 
     console.log(newTyre);
 
-    // Save the tyre to the database
     await newTyre.save();
 
     // Delete temporary image files after saving to database
@@ -133,13 +132,11 @@ exports.getAllTyres = async (req, res) => {
 
 exports.getFilteredTyres = async (req, res) => {
   try {
-    // Extract search criteria and pagination parameters from request query
     const { tyreWidth, profile, rimSize, tube, tyreBrand, vehicleCategory, limit, page } = req.query;
     const pageSize = parseInt(limit) || 4;
     const currentPage = parseInt(page) || 1;
     const skip = pageSize * (currentPage - 1);
 
-    // Construct the filter object based on provided search criteria
     const filter = {};
     if (tyreWidth) filter.tyreWidth = tyreWidth;
     if (profile) filter.profile = profile;
@@ -150,7 +147,6 @@ exports.getFilteredTyres = async (req, res) => {
 
     console.log('Constructed filter:', filter);
 
-    // Get the total count of documents that match the filter
     const totalTyres = await Tyre.countDocuments(filter);
 
     // Find tyres with pagination and sorting
@@ -237,21 +233,19 @@ try {
 
 exports.updateTyre = async (req, res) => {
   try {
-    const { tyreId } = req.params; // Get the tyreId from the URL parameters
-    const updateData = req.body; // Get the fields to update from the request body
+    const { id } = req.params; 
+    const updateData = req.body; 
 
-    // Log the update request
-    console.log('Received update request for tyreId:', tyreId);
+    console.log('Received update request for tyreId:', id);
     console.log('Update data:', updateData);
 
-    // Ensure that the tyreId is provided
-    if (!tyreId) {
+    if (!id) {
       return res.status(400).json({ message: 'Missing tyreId' });
     }
 
     // Find the tyre by tyreId and update it with the new data
-    const updatedTyre = await Tyre.findOneAndUpdate(
-      { tyreId }, // The filter to find the tyre
+    const updatedTyre = await Tyre.findByIdAndUpdate(
+      id , // The filter to find the tyre
       updateData, // The data to update
       { new: true, runValidators: true } // Options: return the updated document and run validators
     );
@@ -262,11 +256,9 @@ exports.updateTyre = async (req, res) => {
       return res.status(404).json({ message: 'Tyre not found' });
     }
 
-    // Log the success message and return the updated tyre
     console.log('Tyre updated successfully:', updatedTyre);
     res.status(200).json({ message: 'Tyre updated successfully', tyre: updatedTyre });
   } catch (err) {
-    // Log any errors that occur during the update
     console.error('Error occurred while updating tyre:', err);
     res.status(500).json({ message: 'Failed to update tyre' });
   }
