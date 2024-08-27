@@ -13,7 +13,7 @@ router.post('/addTyre',
     { name: 'thirdImage', maxCount: 1 }
   ]), tyreController.addTyre);
 router.get('/allTyres', tyreController.getAllTyres);
-router.get('/filterTyres', tyreController.getFilteredTyres);
+router.get('/filterTyres', auth, tyreController.getFilteredTyres);
 router.get('/filterById/:id', tyreController.getFilteredById);
 router.get('/filterBySize', tyreController.getBySize);
 router.put('/updateTyre/:id', tyreController.updateTyre);
