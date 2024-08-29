@@ -1,4 +1,3 @@
-// models/tyre.js
 const mongoose = require('mongoose');
 
 const tyreSchema = new mongoose.Schema({
