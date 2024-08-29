@@ -1,4 +1,3 @@
-// routes/userRoutes.js
 const express = require('express');
 const router = express.Router();
 const tyreController = require('../controllers/tyreController');
@@ -6,7 +5,7 @@ const auth = require('../middlewares/jwtAuth')
 const upload = require('../middlewares/upload');
 
 router.post('/addTyre', 
-    // auth,
+    auth,
      upload.fields([
     { name: 'mainImage', maxCount: 1 },
     { name: 'secondImage', maxCount: 1 },
@@ -16,10 +15,8 @@ router.get('/allTyres', tyreController.getAllTyres);
 router.get('/filterTyres', tyreController.getFilteredTyres);
 router.get('/filterById/:id', tyreController.getFilteredById);
 router.get('/filterBySize', tyreController.getBySize);
-router.put('/updateTyre/:id', tyreController.updateTyre);
-router.delete('/removeTyre/:id',
-  // auth, 
-  tyreController.removeTyre);
+router.put('/updateTyre/:id', auth, tyreController.updateTyre);
+router.delete('/removeTyre/:id', auth, tyreController.removeTyre);
 
 
 router.get('/tyreWidths', tyreController.getTyreWidths);

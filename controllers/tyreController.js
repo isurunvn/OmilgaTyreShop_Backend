@@ -236,6 +236,7 @@ exports.updateTyre = async (req, res) => {
     const { id } = req.params; 
     const updateData = req.body; 
 
+
     console.log('Received update request for tyreId:', id);
     console.log('Update data:', updateData);
 
