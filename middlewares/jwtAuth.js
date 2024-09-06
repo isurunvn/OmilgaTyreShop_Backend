@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-module.exports = function(req, res, next) {
+const auth = (req, res, next) => {
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
         const token = req.headers.authorization.split(' ')[1]; // Corrected split method
 
@@ -15,9 +15,12 @@ module.exports = function(req, res, next) {
             }
 
             req.user = user;
+            req.userRole = user.role;
             next();
         });
     } else {
         res.sendStatus(401);
     }
 };
+
+module.exports = auth;

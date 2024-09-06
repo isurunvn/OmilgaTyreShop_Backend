@@ -5,83 +5,89 @@ const Counter = require('../models/counter');
 const mongoose = require('mongoose');
 
 exports.addTyre = async (req, res) => {
-  try {
-    let { tyreWidth, profile, rimSize, tube, tyreBrand, vehicleCategory, makes, description, price, oldPrice } = req.body;
-
-    console.log('Received query parameters:', { tyreWidth, profile, rimSize, tube, tyreBrand, vehicleCategory, makes, description, price, oldPrice });
-
-    // Check if all image files were uploaded
-    if (!req.files || !req.files.mainImage || !req.files.secondImage || !req.files.thirdImage) {
-      return res.status(400).json({ message: 'All three image files are required' });
+  if (req.userRole == 'admin') {
+    try {
+      let { tyreWidth, profile, rimSize, tube, tyreBrand, vehicleCategory, makes, description, price, oldPrice } = req.body;
+  
+      console.log('Received query parameters:', { tyreWidth, profile, rimSize, tube, tyreBrand, vehicleCategory, makes, description, price, oldPrice });
+  
+      // Check if all image files were uploaded
+      if (!req.files || !req.files.mainImage || !req.files.secondImage || !req.files.thirdImage) {
+        return res.status(400).json({ message: 'All three image files are required' });
+      }
+  
+      // Convert tyreBrand and vehicleCategory to uppercase and lowercase respectively, and remove spaces
+      tyreBrand = tyreBrand.toUpperCase().replace(/\s+/g, '');
+      vehicleCategory = vehicleCategory.toLowerCase().replace(/\s+/g, '');
+  
+      // Read image files from filesystem
+      const mainImage = fs.readFileSync(req.files.mainImage[0].path);
+      const secondImage = fs.readFileSync(req.files.secondImage[0].path);
+      const thirdImage = fs.readFileSync(req.files.thirdImage[0].path);
+  
+      console.log("Start of binary image");
+      console.log(mainImage);
+      console.log("End of binary image");
+  
+      // Get the next sequence value for tyreId
+      const counter = await Counter.findByIdAndUpdate(
+        { _id: 'tyreId' },
+        { $inc: { seq: 1 } },
+        { new: true, upsert: true }
+      );
+  
+      const tyreId = counter.seq;
+  
+      console.log(tyreBrand);
+  
+      // Create tyre object with image data
+      const newTyre = new Tyre({
+        tyreId,
+        tyreWidth,
+        profile,
+        rimSize,
+        tube: tube === 'true',
+        tyreBrand,
+        vehicleCategory,
+        makes,
+        description,
+        price,
+        oldPrice,
+        images: [
+          {
+            data: mainImage,
+            contentType: req.files.mainImage[0].mimetype
+          },
+          {
+            data: secondImage,
+            contentType: req.files.secondImage[0].mimetype
+          },
+          {
+            data: thirdImage,
+            contentType: req.files.thirdImage[0].mimetype
+          }
+        ]
+      });
+  
+      console.log(newTyre);
+  
+      await newTyre.save();
+  
+      // Delete temporary image files after saving to database
+      fs.unlinkSync(req.files.mainImage[0].path);
+      fs.unlinkSync(req.files.secondImage[0].path);
+      fs.unlinkSync(req.files.thirdImage[0].path);
+  
+      res.status(201).json({ message: 'Tyre added successfully' });
+    } catch (err) {
+      res.status(400).json({ message: err.message });
     }
-
-    // Convert tyreBrand and vehicleCategory to uppercase and lowercase respectively, and remove spaces
-    tyreBrand = tyreBrand.toUpperCase().replace(/\s+/g, '');
-    vehicleCategory = vehicleCategory.toLowerCase().replace(/\s+/g, '');
-
-    // Read image files from filesystem
-    const mainImage = fs.readFileSync(req.files.mainImage[0].path);
-    const secondImage = fs.readFileSync(req.files.secondImage[0].path);
-    const thirdImage = fs.readFileSync(req.files.thirdImage[0].path);
-
-    console.log("Start of binary image");
-    console.log(mainImage);
-    console.log("End of binary image");
-
-    // Get the next sequence value for tyreId
-    const counter = await Counter.findByIdAndUpdate(
-      { _id: 'tyreId' },
-      { $inc: { seq: 1 } },
-      { new: true, upsert: true }
-    );
-
-    const tyreId = counter.seq;
-
-    console.log(tyreBrand);
-
-    // Create tyre object with image data
-    const newTyre = new Tyre({
-      tyreId,
-      tyreWidth,
-      profile,
-      rimSize,
-      tube: tube === 'true',
-      tyreBrand,
-      vehicleCategory,
-      makes,
-      description,
-      price,
-      oldPrice,
-      images: [
-        {
-          data: mainImage,
-          contentType: req.files.mainImage[0].mimetype
-        },
-        {
-          data: secondImage,
-          contentType: req.files.secondImage[0].mimetype
-        },
-        {
-          data: thirdImage,
-          contentType: req.files.thirdImage[0].mimetype
-        }
-      ]
-    });
-
-    console.log(newTyre);
-
-    await newTyre.save();
-
-    // Delete temporary image files after saving to database
-    fs.unlinkSync(req.files.mainImage[0].path);
-    fs.unlinkSync(req.files.secondImage[0].path);
-    fs.unlinkSync(req.files.thirdImage[0].path);
-
-    res.status(201).json({ message: 'Tyre added successfully' });
-  } catch (err) {
-    res.status(400).json({ message: err.message });
   }
-};
+  else {
+    res.status(403).json({ message: 'Access denied' });
+  }
+}
+  
 
 exports.getAllTyres = async (req, res) => {
   try {
