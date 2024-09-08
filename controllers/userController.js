@@ -44,6 +44,28 @@ exports.loginUser = async (req, res) => {
   }
 };
 
+exports.updateUser = async (req, res) => {
+  try {
+    const { userEmail } = req.params;
+    const { username, email, mobileNumber, password, role } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10); // Salt rounds: 10
+    const updatedUser = await User.findByIdAndUpdate(userEmail, { username, email, mobileNumber, password: hashedPassword, role }, { new: true });
+    res.status(200).json({ message: 'User updated successfully', user: updatedUser });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+exports.removeUser = async (req, res) => {
+  try {
+    const { userEmail } = req.params;
+    const removedUser = await User.findByIdAndDelete(userEmail);
+    res.status(200).json({ message: 'User deleted successfully', removedUser });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
